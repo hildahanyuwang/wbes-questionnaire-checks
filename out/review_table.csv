@@ -1,0 +1,21 @@
+record_id,question,variable,value,rule_id,rule_source,severity,message,source_text
+SYN-001,D.3,d3b,0,R11z,questionnaire,review,zero recorded although the skip from D.3 should have passed over this question; confirm whether it was asked or auto-filled,D.3  National sales d3a % -9 IF 100% GO TO D.10
+SYN-001,D.3,d3c,0,R11z,questionnaire,review,zero recorded although the skip from D.3 should have passed over this question; confirm whether it was asked or auto-filled,D.3  National sales d3a % -9 IF 100% GO TO D.10
+SYN-002,B.3,b3,80,R12,questionnaire,error,b1 = 3 (sole proprietorship) but b3 is not 100,"INTERVIEWER: PLEASE NOTE WHEN b1 IS 3 (SOLE PROPRIETORSHIP), ENTER 100% FOR QUESTION b3."
+SYN-003,B.6b,b6b,2007,R20,analyst,review,formal registration (2007) precedes the start of operations (2009); possible but worth confirming with the respondent,Not printed on the questionnaire; reviewer-defined consistency check
+SYN-003,D.3,d3a,95,R04,questionnaire,error,"d3a+d3b+d3c = 95, does not total 100",INTERVIEWER: CHECK THAT TOTAL SUMS TO 100% UNLESS RESPONDENT DOES NOT KNOW
+SYN-004,B.2,b2c,100,R14,questionnaire,error,b2c = 100 (wholly government owned) but the record continues; the interview should have ended here,B.2  Government or State b2c % -9 IF 100% END INTERVIEW
+SYN-004,B.6,b6,140,R21,analyst,review,start-up workforce (140) is more than five times current permanent full-time employment (18),Not printed on the questionnaire; reviewer-defined plausibility check
+SYN-004,L.1,l1,18,R22,analyst,review,"permanent full-time employment moved from 198 to 18 over two fiscal years, a tenfold change or more",Not printed on the questionnaire; reviewer-defined plausibility check
+SYN-005,B.3,b3,65,R12,questionnaire,error,b1 = 3 (sole proprietorship) but b3 is not 100,"INTERVIEWER: PLEASE NOTE WHEN b1 IS 3 (SOLE PROPRIETORSHIP), ENTER 100% FOR QUESTION b3."
+SYN-005,B.4a,b4a,40,R13,questionnaire,error,b1 = 3 and b4 = 1 but b4a is not 100,"INTERVIEWER: PLEASE NOTE WHEN b1 IS 3 (SOLE PROPRIETORSHIP) and b4 is 1 (FIRM HAS A FEMALE OWNER), ENTER 100% FOR QUESTION b4a."
+SYN-005,D.3,d3b,0,R11z,questionnaire,review,zero recorded although the skip from D.3 should have passed over this question; confirm whether it was asked or auto-filled,D.3  National sales d3a % -9 IF 100% GO TO D.10
+SYN-005,D.3,d3c,0,R11z,questionnaire,review,zero recorded although the skip from D.3 should have passed over this question; confirm whether it was asked or auto-filled,D.3  National sales d3a % -9 IF 100% GO TO D.10
+SYN-006,C.11,c11,120,R01,questionnaire,error,percentage outside the permitted 0-100 range,Question is answered in 'Percent'
+SYN-007,B.2,b2a,0,R03,questionnaire,error,"b2a+b2b+b2c+b2d = 0, does not total 100",INTERVIEWER: CHECK THAT TOTAL SUMS TO 100% UNLESS RESPONDENT DOES NOT KNOW
+SYN-008,B.6b,b6b,-7,R15,questionnaire,error,b6b = -7 (never registered) but the record continues; the interview should have terminated,B.6b  NEVER REGISTERED (SPONTANEOUS) -7 TERMINATE
+SYN-009,B.5,b5,21,R16,questionnaire,error,year is not written as four digits,INTERVIEWER: PROVIDE FOUR DIGITS FOR YEAR
+SYN-010,B.7,b7,75,R23,analyst,review,top manager's sector experience (75 years) is implausibly long,Not printed on the questionnaire; reviewer-defined plausibility check
+SYN-012,C.8,c8a,2,R09,questionnaire,error,answered although the skip from C.7 should have passed over it,"C.7  IF 0, GO TO C.9"
+SYN-012,C.8,c8b,30,R09,questionnaire,error,answered although the skip from C.7 should have passed over it,"C.7  IF 0, GO TO C.9"
+SYN-012,L.1,l1,31,R22,analyst,review,"permanent full-time employment moved from 420 to 31 over two fiscal years, a tenfold change or more",Not printed on the questionnaire; reviewer-defined plausibility check

@@ -1,0 +1,143 @@
+# Questionnaire checks for Enterprise Surveys records
+
+A small validation harness built from the **public** World Bank Enterprise Surveys core
+questionnaire. It takes a batch of interview records, applies the checks the
+questionnaire prints, and returns a review table with the comments organised by
+interview and by question.
+
+```
+python run.py
+```
+
+No arguments, no configuration, no network, standard library only.
+
+> **The records in `data/` are synthetic.** They were written by hand to exercise the
+> rules and contain deliberate errors. No Enterprise Surveys data of any kind was used.
+> See [`data/SYNTHETIC_DATA_NOTICE.md`](data/SYNTHETIC_DATA_NOTICE.md).
+
+---
+
+## Why this shape
+
+The *Enterprise Surveys Manual and Guide* (§4.4.3) describes what happens when a vendor
+delivers a batch of interviews:
+
+> "The output from the data quality control is compiled in an easily navigable
+> spreadsheet with all comments by interview and by question organized clearly. The
+> vendor uses this output to manage call-backs to the survey respondents to verify the
+> data."
+
+So the output here is that spreadsheet, not an error log: one block per interview
+record, one row per question flagged, with the reason stated in the terms the
+interviewer will recognise.
+
+## Coverage against the manual's own check list
+
+§4.4.3 lists the quality control checks. This is which of them the harness implements:
+
+| Check (manual's wording) | Here | Rules |
+|---|---|---|
+| **Variable ranges** — *"Each response is within the allowed range of the corresponding variable"* | yes | R01, R02 |
+| **Skip patterns** — *"the questions that are not applicable to a particular respondent are skipped, and all the others are administered"* | yes | R05–R11 |
+| **Sum to 100** — *"Questions about share breakdowns add to 100 as intended"* | yes | R03, R04 |
+| **Logic checks** — *"Responses do not directly contradict other responses from the same establishment"* | yes | R12–R16, R20 |
+| **Outlier checks** — *"A selected set of numerical variables do not have unexpected entries"* | partly | R21–R23 |
+| **Variables** — all questionnaire variables present, correct format, nothing extra | no | — |
+| **Sectoral mapping checks** — descriptions match the ISIC code | no | — |
+| **String variable checks** — text answers the question; no sensitive information | no | — |
+| **Cross-check against the weekly Progress Report** | no | — |
+
+The four unimplemented categories need the sampling frame, the ISIC mapping, the
+Progress Report and the full variable manifest, none of which are public.
+
+## The rules
+
+12 synthetic records → 20 findings: **11 to correct, 9 to confirm.**
+
+Every rule declares where it comes from, and the two kinds are treated differently:
+
+| Basis | Meaning | Action |
+|---|---|---|
+| `questionnaire` | printed on the questionnaire; the printed wording is quoted verbatim in the output | **correct** |
+| `reviewer` | a consistency or plausibility check I defined; nothing in the instrument says the value is wrong | **confirm** — never corrected automatically |
+
+A reviewer who disagrees with one of my checks can drop it without touching the rules
+the instrument imposes.
+
+**Printed on the questionnaire**
+
+| | Check | Instruction it comes from |
+|---|---|---|
+| R01 | percentages are 0–100; missing codes are ones the question actually offers | response codes printed beside each question |
+| R02 | coded answers use the printed response codes | as above |
+| R03 | `b2a+b2b+b2c+b2d` totals 100 | *"INTERVIEWER: CHECK THAT TOTAL SUMS TO 100% UNLESS RESPONDENT DOES NOT KNOW"* (B.2) |
+| R04 | `d3a+d3b+d3c` totals 100 | the same instruction at D.3 |
+| R05–R11 | skip patterns B.8→C.3, B.4→B.5, C.3→C.6, C.6→C.10, C.7→C.9, C.10→C.12, D.3→D.10 | e.g. *"National sales d3a % -9 IF 100% GO TO D.10"* |
+| R12 | `b1=3` (sole proprietorship) ⇒ `b3=100` | *"INTERVIEWER: PLEASE NOTE WHEN b1 IS 3 (SOLE PROPRIETORSHIP), ENTER 100% FOR QUESTION b3."* |
+| R13 | `b1=3` and `b4=1` ⇒ `b4a=100` | the matching note at B.4a |
+| R14 | `b2c=100` ⇒ the record should not continue | *"Government or State b2c % -9 IF 100% END INTERVIEW"* |
+| R15 | `b6b=-7` (never registered) ⇒ the record should not continue | *"NEVER REGISTERED (SPONTANEOUS) -7 TERMINATE"* |
+| R16 | years are four digits | *"INTERVIEWER: PROVIDE FOUR DIGITS FOR YEAR"* |
+
+**Defined by me, raised for confirmation only**
+
+| | Check |
+|---|---|
+| R20 | formal registration precedes the start of operations (`b6b < b5`) |
+| R21 | start-up workforce is more than five times current permanent full-time employment |
+| R22 | permanent full-time employment moved tenfold or more over two fiscal years |
+| R23 | top manager's sector experience exceeds 70 years |
+
+### One judgement worth naming
+
+A skipped question carrying a **recorded zero** is a different problem from one carrying
+a quantity. Fieldwork software and keyers routinely write `0` into a skipped numeric
+field; that is inconsistent with the printed skip but does not change what the record
+says. A non-zero answer after a skip does change it. So R05–R11 raise a zero **to
+confirm** (`R11z`) and a quantity **to correct**. Collapsing the two fills the vendor's
+call-back list with noise.
+
+## Missing-value codes
+
+Taken from the codes printed beside the questions:
+
+| | |
+|---|---|
+| `-9` | DON'T KNOW (SPONTANEOUS) |
+| `-8` | REFUSAL (SPONTANEOUS) |
+| `-7` | does not apply — *"IF ESTABLISHMENT WAS NOT IN BUSINESS IN […] -7"*, *"NEVER REGISTERED (SPONTANEOUS) -7"* |
+| `-6` | STILL IN PROCESS |
+| `-5` | APPLICATION DENIED |
+
+A missing code is accepted only on a question that prints it. `-8` on a question
+offering only `-9` is itself a finding (R01b).
+
+## Output
+
+```
+out/review_table.md    one block per record, one row per flagged question
+out/review_table.csv   the same, for a spreadsheet
+out/summary.md         counts by rule, for the covering note to the vendor
+```
+
+## Layout
+
+```
+run.py                            the only entry point
+checks/rules.py                   every rule, with its source text
+data/synthetic_responses.csv      12 synthetic records with deliberate errors
+data/SYNTHETIC_DATA_NOTICE.md     what the data is and is not
+out/                              generated; committed so the output is visible
+```
+
+## Scope
+
+Half a day's work against the public core questionnaire. It covers five of the manual's
+nine check categories, has not been run against real data, and does not touch sampling,
+weighting, the sector-specific modules or country-specific questions.
+
+Sources: Enterprise Surveys core questionnaire and *Manual and Guide*, published at
+[enterprisesurveys.org](https://www.enterprisesurveys.org/en/methodology). Independent
+work; not affiliated with or endorsed by the World Bank.
+
+Hanyu (Hilda) Wang
